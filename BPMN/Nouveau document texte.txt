@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+
+  <bpmn:process id="demandeCongeProcess" name="Processus de demande de congé" isExecutable="true">
+    
+    <!-- Événement de début -->
+    <bpmn:startEvent id="startEvent" name="Début">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- Tâche de soumission -->
+    <bpmn:userTask id="submitLeaveRequest" name="Soumettre la demande"
+                   camunda:assignee="${initiator}"
+                   camunda:formKey="embedded:app:forms/submit-leave.html">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="startDate" label="Date de début" type="date" />
+          <camunda:formField id="endDate" label="Date de fin" type="date" />
+          <camunda:formField id="reason" label="Motif" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <!-- Gateway de décision -->
+    <bpmn:exclusiveGateway id="approvalGateway" name="Demande approuvée ?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Tâche de notification d'approbation -->
+    <bpmn:userTask id="notifyApproval" name="Notifier l'approbation"
+                   camunda:assignee="${initiator}">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <camunda:taskListener event="complete">
+          <camunda:script scriptFormat="javascript">
+            execution.setVariable('status', 'APPROVED');
+          </camunda:script>
+        </camunda:taskListener>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <!-- Tâche de notification de rejet -->
+    <bpmn:userTask id="notifyRejection" name="Notifier le rejet"
+                   camunda:assignee="${initiator}">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <camunda:taskListener event="complete">
+          <camunda:script scriptFormat="javascript">
+            execution.setVariable('status', 'REJECTED');
+          </camunda:script>
+        </camunda:taskListener>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <!-- Événements de fin -->
+    <bpmn:endEvent id="approvedEnd" name="Fin - Approuvée">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="rejectedEnd" name="Fin - Rejetée">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Définition des flux de séquence -->
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="startEvent" targetRef="submitLeaveRequest" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="submitLeaveRequest" targetRef="approvalGateway" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="approvalGateway" targetRef="notifyApproval">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="approvalGateway" targetRef="notifyRejection">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="notifyApproval" targetRef="approvedEnd" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="notifyRejection" targetRef="rejectedEnd" />
+
+  </bpmn:process>
+</bpmn:definitions>

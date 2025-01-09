@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deploy xmlns="http://www.apache.org/ode/schemas/dd/2007/03" xmlns:avail="http://example.com/availability" xmlns:ord="http://example.com/ordering" xmlns:order="http://example.com/order" xmlns:order-process="order-process">
+  <process name="order:OrderProcess">
+    <process-events generate="all"/>
+    <provide partnerLink="client"/>
+    <invoke partnerLink="availabilityService"/>
+    <invoke partnerLink="orderService"/>
+  </process>
+</deploy>

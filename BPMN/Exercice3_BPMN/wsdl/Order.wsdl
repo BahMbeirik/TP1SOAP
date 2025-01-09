@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="OrderService"
+             targetNamespace="http://example.com/ordering"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:tns="http://example.com/ordering"
+             xmlns:plnk="http://docs.oasis-open.org/wsbpel/2.0/plnktype"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <!-- Types -->
+    <types>
+        <xsd:schema targetNamespace="http://example.com/ordering">
+            <xsd:element name="PlaceOrderRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="productId" type="xsd:string"/>
+                        <xsd:element name="quantity" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="PlaceOrderResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="orderId" type="xsd:string"/>
+                        <xsd:element name="status" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    </types>
+
+    <!-- Messages -->
+    <message name="PlaceOrderRequest">
+        <part name="parameters" element="tns:PlaceOrderRequest"/>
+    </message>
+    <message name="PlaceOrderResponse">
+        <part name="parameters" element="tns:PlaceOrderResponse"/>
+    </message>
+
+    <!-- Port Types -->
+    <portType name="OrderPortType">
+        <operation name="placeOrder">
+            <input message="tns:PlaceOrderRequest"/>
+            <output message="tns:PlaceOrderResponse"/>
+        </operation>
+    </portType>
+
+    <!-- Partner Link Types -->
+    <plnk:partnerLinkType name="OrderPartnerLinkType">
+        <plnk:role name="OrderProvider" portType="tns:OrderPortType"/>
+    </plnk:partnerLinkType>
+</definitions>

@@ -1,0 +1,186 @@
+Formulaire de soumission de congés
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Demande de congés</title>
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="date"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .required {
+            color: red;
+            margin-left: 3px;
+        }
+        .form-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 3px;
+        }
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <form name="leaveRequest" class="form">
+            <!-- Informations de l'employé -->
+            <div class="form-group">
+                <label>Nom de l'employé<span class="required">*</span></label>
+                <input type="text" 
+                       class="form-control" 
+                       cam-variable-name="employeeName" 
+                       cam-variable-type="String" 
+                       required 
+                       readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Service</label>
+                <input type="text" 
+                       class="form-control" 
+                       cam-variable-name="department" 
+                       cam-variable-type="String" 
+                       readonly>
+            </div>
+
+            <!-- Type de congé -->
+            <div class="form-group">
+                <label>Type de congé<span class="required">*</span></label>
+                <select class="form-control" 
+                        cam-variable-name="leaveType" 
+                        cam-variable-type="String" 
+                        required>
+                    <option value="">Sélectionnez un type</option>
+                    <option value="PAID">Congés payés</option>
+                    <option value="UNPAID">Congés sans solde</option>
+                    <option value="SICK">Congé maladie</option>
+                    <option value="SPECIAL">Congé exceptionnel</option>
+                </select>
+            </div>
+
+            <!-- Période de congé -->
+            <div class="form-group">
+                <label>Date de début<span class="required">*</span></label>
+                <input type="date" 
+                       class="form-control" 
+                       cam-variable-name="startDate" 
+                       cam-variable-type="Date" 
+                       required>
+                <div class="form-info">Premier jour de congé</div>
+            </div>
+
+            <div class="form-group">
+                <label>Date de fin<span class="required">*</span></label>
+                <input type="date" 
+                       class="form-control" 
+                       cam-variable-name="endDate" 
+                       cam-variable-type="Date" 
+                       required>
+                <div class="form-info">Dernier jour de congé</div>
+            </div>
+
+            <!-- Demi-journées -->
+            <div class="form-group">
+                <label>Options de demi-journées</label>
+                <select class="form-control" 
+                        cam-variable-name="halfDayOption" 
+                        cam-variable-type="String">
+                    <option value="NONE">Journées complètes</option>
+                    <option value="START_PM">Début l'après-midi</option>
+                    <option value="END_AM">Fin le matin</option>
+                </select>
+            </div>
+
+            <!-- Motif -->
+            <div class="form-group">
+                <label>Motif du congé<span class="required">*</span></label>
+                <textarea class="form-control" 
+                          cam-variable-name="reason" 
+                          cam-variable-type="String" 
+                          required></textarea>
+                <div class="form-info">Veuillez fournir une description détaillée du motif de votre demande</div>
+            </div>
+
+            <!-- Contact pendant le congé -->
+            <div class="form-group">
+                <label>Contact pendant l'absence</label>
+                <input type="text" 
+                       class="form-control" 
+                       cam-variable-name="emergencyContact" 
+                       cam-variable-type="String" 
+                       placeholder="Numéro de téléphone ou email">
+            </div>
+
+            <!-- Commentaires supplémentaires -->
+            <div class="form-group">
+                <label>Commentaires supplémentaires</label>
+                <textarea class="form-control" 
+                          cam-variable-name="additionalComments" 
+                          cam-variable-type="String"></textarea>
+            </div>
+
+            <!-- Déclaration -->
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" 
+                           required 
+                           cam-variable-name="termsAccepted" 
+                           cam-variable-type="Boolean">
+                    Je confirme que les informations fournies sont exactes
+                </label>
+            </div>
+
+            <button type="submit" class="submit-button">Soumettre la demande</button>
+        </form>
+    </div>
+
+    <script>
+        // Validation supplémentaire des dates
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const startDate = new Date(document.querySelector('[cam-variable-name="startDate"]').value);
+            const endDate = new Date(document.querySelector('[cam-variable-name="endDate"]').value);
+            
+            if (endDate < startDate) {
+                e.preventDefault();
+                alert('La date de fin doit être postérieure à la date de début');
+            }
+        });
+    </script>
+</body>
+</html>

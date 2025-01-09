@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Soumettre la demande</title>
+</head>
+<body>
+    <form id="camunda-form">
+        <label for="requestReason">Raison de la demande :</label><br>
+        <input type="text" id="requestReason" name="requestReason" required><br><br>
+
+        <label for="approvalStatus">Statut de la demande :</label><br>
+        <select id="approvalStatus" name="approvalStatus" required>
+            <option value="approved">Approuvé</option>
+            <option value="rejected">Rejeté</option>
+        </select><br><br>
+
+        <button type="submit">Envoyer</button>
+    </form>
+</body>
+</html>

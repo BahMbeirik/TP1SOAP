@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="Camunda Modeler"
+                  exporterVersion="5.0.0">
+  <bpmn:process id="Process_GestionRetours" isExecutable="true">
+    <!-- Événement de début -->
+    <bpmn:startEvent id="StartEvent_1" name="Début">
+      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- Tâche : Envoyer la demande de retour (Client) -->
+    <bpmn:sendTask id="SendTask_EnvoyerDemande" name="Envoyer la demande de retour">
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_DemandeRetour"/>
+    </bpmn:sendTask>
+
+    <!-- Tâche : Vérifier la demande (Service Client) -->
+    <bpmn:receiveTask id="ReceiveTask_VerifierDemande" name="Vérifier la demande">
+      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_DemandeRetour"/>
+    </bpmn:receiveTask>
+
+    <!-- Passerelle exclusive : La demande est-elle valide ? -->
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1" name="La demande est-elle valide ?">
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- Tâche : Envoyer l'étiquette de retour (Service Client) -->
+    <bpmn:sendTask id="SendTask_EnvoyerEtiquette" name="Envoyer l'étiquette de retour">
+      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_6</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_EtiquetteRetour"/>
+    </bpmn:sendTask>
+
+    <!-- Tâche : Organiser la collecte (Service Logistique) -->
+    <bpmn:receiveTask id="ReceiveTask_OrganiserCollecte" name="Organiser la collecte">
+      <bpmn:incoming>SequenceFlow_6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_7</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_EtiquetteRetour"/>
+    </bpmn:receiveTask>
+
+    <!-- Tâche : Confirmer la réception (Service Logistique) -->
+    <bpmn:sendTask id="SendTask_ConfirmerReception" name="Confirmer la réception">
+      <bpmn:incoming>SequenceFlow_7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_8</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_ConfirmationReception"/>
+    </bpmn:sendTask>
+
+    <!-- Tâche : Recevoir la confirmation (Client) -->
+    <bpmn:receiveTask id="ReceiveTask_RecevoirConfirmation" name="Recevoir la confirmation">
+      <bpmn:incoming>SequenceFlow_8</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_9</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_ConfirmationReception"/>
+    </bpmn:receiveTask>
+
+    <!-- Événement de fin -->
+    <bpmn:endEvent id="EndEvent_1" name="Fin">
+      <bpmn:incoming>SequenceFlow_9</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Séquence des flux -->
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="SendTask_EnvoyerDemande" />
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="SendTask_EnvoyerDemande" targetRef="ReceiveTask_VerifierDemande" />
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="ReceiveTask_VerifierDemande" targetRef="ExclusiveGateway_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="ExclusiveGateway_1" targetRef="SendTask_EnvoyerEtiquette">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${demandeValide == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="ExclusiveGateway_1" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${demandeValide == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="SendTask_EnvoyerEtiquette" targetRef="ReceiveTask_OrganiserCollecte" />
+    <bpmn:sequenceFlow id="SequenceFlow_7" sourceRef="ReceiveTask_OrganiserCollecte" targetRef="SendTask_ConfirmerReception" />
+    <bpmn:sequenceFlow id="SequenceFlow_8" sourceRef="SendTask_ConfirmerReception" targetRef="ReceiveTask_RecevoirConfirmation" />
+    <bpmn:sequenceFlow id="SequenceFlow_9" sourceRef="ReceiveTask_RecevoirConfirmation" targetRef="EndEvent_1" />
+  </bpmn:process>
+
+  <!-- Messages -->
+  <bpmn:message id="Message_DemandeRetour" name="Demande de retour" />
+  <bpmn:message id="Message_EtiquetteRetour" name="Étiquette de retour" />
+  <bpmn:message id="Message_ConfirmationReception" name="Confirmation de réception" />
+
+  <!-- Diagramme BPMN -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_GestionRetours">
+      <!-- Éléments graphiques -->
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_EnvoyerDemande_di" bpmnElement="SendTask_EnvoyerDemande">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReceiveTask_VerifierDemande_di" bpmnElement="ReceiveTask_VerifierDemande">
+        <dc:Bounds x="400" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1_di" bpmnElement="ExclusiveGateway_1">
+        <dc:Bounds x="560" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_EnvoyerEtiquette_di" bpmnElement="SendTask_EnvoyerEtiquette">
+        <dc:Bounds x="680" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReceiveTask_OrganiserCollecte_di" bpmnElement="ReceiveTask_OrganiserCollecte">
+        <dc:Bounds x="840" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_ConfirmerReception_di" bpmnElement="SendTask_ConfirmerReception">
+        <dc:Bounds x="1000" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReceiveTask_RecevoirConfirmation_di" bpmnElement="ReceiveTask_RecevoirConfirmation">
+        <dc:Bounds x="1160" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="1320" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <!-- Flux -->
+      <bpmndi:BPMNEdge id="SequenceFlow_1_di" bpmnElement="SequenceFlow_1">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_2_di" bpmnElement="SequenceFlow_2">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="400" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_3_di" bpmnElement="SequenceFlow_3">
+        <di:waypoint x="500" y="120" />
+        <di:waypoint x="560" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_4_di" bpmnElement="SequenceFlow_4">
+        <di:waypoint x="585" y="95" />
+        <di:waypoint x="680" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_5_di" bpmnElement="SequenceFlow_5">
+        <di:waypoint x="585" y="145" />
+        <di:waypoint x="1320" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_6_di" bpmnElement="SequenceFlow_6">
+        <di:waypoint x="780" y="120" />
+        <di:waypoint x="840" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_7_di" bpmnElement="SequenceFlow_7">
+        <di:waypoint x="940" y="120" />
+        <di:waypoint x="1000" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_8_di" bpmnElement="SequenceFlow_8">
+        <di:waypoint x="1100" y="120" />
+        <di:waypoint x="1160" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_9_di" bpmnElement="SequenceFlow_9">
+        <di:waypoint x="1260" y="120" />
+        <di:waypoint x="1320" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
